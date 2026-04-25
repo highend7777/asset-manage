@@ -12,7 +12,7 @@ DROP TABLE IF EXISTS product_prices CASCADE;
 
 -- 2. 가족 구성원 테이블
 CREATE TABLE family_members (
-    id PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name TEXT NOT NULL,
     relationship TEXT NOT NULL,
     created_at TIMESTAMPTZ DEFAULT NOW()
