@@ -1,29 +1,18 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { supabase } from '../lib/supabase'
 import type { FamilyMember } from '../lib/supabase'
 import { UserPlus, Trash2, User } from 'lucide-react'
 
-const FamilySection = () => {
-  const [members, setMembers] = useState<FamilyMember[]>([])
+interface FamilySectionProps {
+  members: FamilyMember[]
+  onRefresh: () => void
+}
+
+const FamilySection: React.FC<FamilySectionProps> = ({ members, onRefresh }) => {
   const [name, setName] = useState('')
   const [relationship, setRelationship] = useState('본인')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    fetchMembers()
-  }, [])
-
-  async function fetchMembers() {
-    setLoading(true)
-    const { data, error } = await supabase.from('family_members').select('*').order('created_at', { ascending: true })
-    if (error) {
-      setError(`Supabase 연결 실패: ${error.message}`)
-    } else {
-      setMembers(data || [])
-    }
-    setLoading(false)
-  }
 
   async function addMember(e: React.FormEvent) {
     e.preventDefault()
@@ -35,7 +24,7 @@ const FamilySection = () => {
       setError(`멤버 추가 실패: ${error.message}`)
     } else {
       setName('')
-      fetchMembers()
+      onRefresh() // 부모의 데이터를 갱신하도록 호출
     }
     setLoading(false)
   }
@@ -48,7 +37,7 @@ const FamilySection = () => {
     if (error) {
       setError(`멤버 삭제 실패: ${error.message}`)
     } else {
-      fetchMembers()
+      onRefresh() // 부모의 데이터를 갱신하도록 호출
     }
     setLoading(false)
   }
@@ -70,7 +59,7 @@ const FamilySection = () => {
           <select
             value={relationship}
             onChange={(e) => setRelationship(e.target.value)}
-            className="bg-black/5 border border-black/10 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all text-slate-800"
+            className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#FFB81C]/50 transition-all text-slate-800"
           >
             <option value="본인">본인</option>
             <option value="와이프">와이프</option>
@@ -79,13 +68,13 @@ const FamilySection = () => {
           <button
             type="submit"
             disabled={loading}
-            className="bg-primary hover:bg-blue-600 text-white font-semibold py-3 px-6 rounded-xl transition-all shadow-lg shadow-primary/20 disabled:opacity-50"
+            className="bg-[#FFB81C] hover:bg-[#e6a519] text-slate-900 font-bold py-3 px-8 rounded-xl transition-all shadow-sm disabled:opacity-50"
           >
-            {loading ? '처리 중...' : '추가하기'}
+            {loading ? '...' : '멤버 추가'}
           </button>
         </form>
         {error && (
-          <div className="mt-4 p-3 bg-danger/20 border border-danger/30 text-danger text-sm rounded-lg flex justify-between items-center">
+          <div className="mt-4 p-3 bg-red-50 border border-red-100 text-red-600 text-sm rounded-lg flex justify-between items-center">
             {error}
             <button onClick={() => setError(null)} className="underline">닫기</button>
           </div>

@@ -3,9 +3,13 @@ import { supabase } from '../lib/supabase'
 import type { FamilyMember, Account } from '../lib/supabase'
 import { Landmark, Plus, Trash2, User } from 'lucide-react'
 
-const AccountSection = () => {
-  const [members, setMembers] = useState<FamilyMember[]>([])
-  const [accounts, setAccounts] = useState<Account[]>([])
+interface AccountSectionProps {
+  members: FamilyMember[]
+  accounts: Account[]
+  onRefresh: () => void
+}
+
+const AccountSection: React.FC<AccountSectionProps> = ({ members, accounts, onRefresh }) => {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -14,25 +18,12 @@ const AccountSection = () => {
   const [institution, setInstitution] = useState('')
   const [name, setName] = useState('')
 
+  // 초기 소유자 설정
   useEffect(() => {
-    fetchData()
-  }, [])
-
-  async function fetchData() {
-    setLoading(true)
-    const [mRes, aRes] = await Promise.all([
-      supabase.from('family_members').select('*').order('name'),
-      supabase.from('accounts').select('*').order('created_at', { ascending: false })
-    ])
-
-    if (mRes.error) setError(`가족 데이터 로드 실패: ${mRes.error.message}`)
-    if (aRes.error) setError(`계좌 데이터 로드 실패: ${aRes.error.message}`)
-
-    setMembers(mRes.data || [])
-    setAccounts(aRes.data || [])
-    if (mRes.data && mRes.data.length > 0) setMemberId(mRes.data[0].id)
-    setLoading(false)
-  }
+    if (members.length > 0 && !memberId) {
+      setMemberId(members[0].id)
+    }
+  }, [members, memberId])
 
   async function addAccount(e: React.FormEvent) {
     e.preventDefault()
@@ -50,7 +41,7 @@ const AccountSection = () => {
     } else {
       setInstitution('')
       setName('')
-      fetchData()
+      onRefresh() // 부모의 데이터를 갱신하도록 호출
     }
     setLoading(false)
   }
@@ -60,7 +51,7 @@ const AccountSection = () => {
     setLoading(true)
     const { error } = await supabase.from('accounts').delete().eq('id', id)
     if (error) setError(`계좌 삭제 실패: ${error.message}`)
-    else fetchData()
+    else onRefresh() // 부모의 데이터를 갱신하도록 호출
     setLoading(false)
   }
 
@@ -107,7 +98,7 @@ const AccountSection = () => {
             <button
               type="submit"
               disabled={loading || members.length === 0}
-              className="w-full bg-primary hover:bg-blue-600 text-white font-bold p-3 rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+              className="w-full bg-primary hover:bg-amber-400 text-slate-900 font-black p-3 rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-50 shadow-md"
             >
               <Plus className="w-5 h-5" /> 계좌 추가
             </button>

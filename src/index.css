@@ -1,48 +1,67 @@
 @import "tailwindcss";
 
+@theme {
+  --color-primary: #FFBC00; /* KB Yellow */
+  --color-secondary: #4D4D4D; /* KB Brown */
+  --color-accent: #6E6E6E; /* Star Gray */
+  --color-danger: #ED1C24;
+  --color-success: #00A651;
+}
+
 :root {
-  font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-
-  color-scheme: light;
-  color: #1e293b;
-  background-color: #f8fafc;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  --kb-yellow: #FFBC00;
+  --kb-brown: #4D4D4D;
+  --kb-gray: #6E6E6E;
+  --kb-light-gray: #F8F9FA;
 }
 
 body {
   margin: 0;
-  display: flex;
-  place-content: center;
-  min-width: 320px;
-  min-height: 100vh;
-}
-
-#root {
-  width: 100%;
-}
-
-@theme {
-  --color-primary: #2563eb;
-  --color-secondary: #059669;
-  --color-accent: #d97706;
-  --color-danger: #dc2626;
-}
-
-/* Custom Utilities for Light Mode */
-.glass {
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  background-color: var(--kb-light-gray);
+  color: var(--kb-brown);
+  -webkit-font-smoothing: antialiased;
 }
 
 .upward-gradient {
-  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+  background: linear-gradient(135deg, #F8F9FA 0%, #F1F3F5 100%);
+}
+
+.glass {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+}
+
+.kb-card {
+  background: white;
+  border-radius: 1.5rem;
+  border-bottom: 4px solid var(--kb-yellow);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-in {
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #DEE2E6;
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--kb-yellow);
 }

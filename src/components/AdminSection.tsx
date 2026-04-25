@@ -116,138 +116,128 @@ const AdminSection = () => {
   }
 
   return (
-    <div className="max-w-5xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-700">
+    <div className="max-w-5xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-8 duration-700">
       {/* Header & Stats */}
-      <div className="glass p-8 rounded-[2rem] border border-black/5">
-        <div className="flex items-center gap-4 mb-8">
-          <div className="bg-primary/10 p-3 rounded-2xl">
-            <Settings className="text-primary w-8 h-8" />
+      <div className="kb-card p-6">
+        <div className="flex items-center gap-4 mb-6">
+          <div className="bg-primary/20 p-2.5 rounded-2xl">
+            <Settings className="text-primary w-6 h-6" />
           </div>
           <div>
-            <h2 className="text-2xl font-black text-slate-900">상품 및 가격 데이터 관리</h2>
-            <p className="text-slate-500 font-medium">개별 등록하거나 CSV 파일로 일괄 등록할 수 있습니다.</p>
+            <h2 className="text-lg font-black text-slate-900">상품 및 가격 데이터 관리</h2>
+            <p className="text-slate-400 text-xs font-bold">KB Premium Data Management System</p>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-primary/5 p-6 rounded-2xl border border-primary/10 flex justify-between items-center">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 flex justify-between items-center">
             <div>
-              <span className="text-slate-500 text-xs font-bold uppercase tracking-wider">등록된 종목</span>
-              <div className="text-3xl font-black text-primary">{productCount.toLocaleString()} <span className="text-sm font-normal text-slate-400">개</span></div>
+              <span className="text-slate-400 text-[10px] font-black uppercase tracking-widest">Master Products</span>
+              <div className="text-2xl font-black text-slate-800">{productCount.toLocaleString()} <span className="text-xs font-bold text-slate-400">Items</span></div>
             </div>
-            <Database className="text-primary/20 w-12 h-12" />
+            <Database className="text-primary/20 w-10 h-10" />
           </div>
-          <div className="bg-accent/5 p-6 rounded-2xl border border-accent/10 flex justify-between items-center">
+          <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 flex justify-between items-center">
             <div>
-              <span className="text-slate-500 text-xs font-bold uppercase tracking-wider">가격 데이터</span>
-              <div className="text-3xl font-black text-accent">{priceCount.toLocaleString()} <span className="text-sm font-normal text-slate-400">건</span></div>
+              <span className="text-slate-400 text-[10px] font-black uppercase tracking-widest">Price History</span>
+              <div className="text-2xl font-black text-slate-800">{priceCount.toLocaleString()} <span className="text-xs font-bold text-slate-400">Points</span></div>
             </div>
-            <Coins className="text-accent/20 w-12 h-12" />
+            <Coins className="text-slate-200 w-10 h-10" />
           </div>
         </div>
       </div>
 
       {(status || error) && (
-        <div className={`p-4 rounded-2xl flex items-center gap-3 animate-in slide-in-from-top-4 ${error ? 'bg-danger/10 text-danger border border-danger/20' : 'bg-secondary/10 text-secondary border border-secondary/20'}`}>
-          {error ? <AlertCircle className="w-5 h-5" /> : <CheckCircle2 className="w-5 h-5" />}
-          <span className="text-sm font-bold">{error || status}</span>
+        <div className={`p-4 rounded-2xl flex items-center gap-3 animate-in slide-in-from-top-2 ${error ? 'bg-red-50 text-red-600 border border-red-100' : 'bg-green-50 text-green-600 border border-green-100'}`}>
+          {error ? <AlertCircle className="w-4 h-4" /> : <CheckCircle2 className="w-4 h-4" />}
+          <span className="text-xs font-black">{error || status}</span>
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Section: Product Master */}
-        <div className="space-y-6">
-          <div className="glass p-6 rounded-[2rem] border border-black/5 space-y-6">
-            <h3 className="text-lg font-black text-slate-900 flex items-center gap-2">
-              <Database className="w-5 h-5 text-primary" /> 종목 정보 등록
-            </h3>
-            
-            {/* Manual Form */}
-            <form onSubmit={handleAddProduct} className="grid grid-cols-2 gap-3">
-              <input type="text" placeholder="종목명" value={pName} onChange={e => setPName(e.target.value)} className="col-span-2 bg-black/5 border border-black/5 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 outline-none" />
-              <input type="text" placeholder="심볼(코드)" value={pSymbol} onChange={e => setPSymbol(e.target.value)} className="bg-black/5 border border-black/5 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 outline-none" />
-              <select value={pType} onChange={e => setPType(e.target.value)} className="bg-black/5 border border-black/5 rounded-xl px-4 py-3 text-sm outline-none">
-                <option value="stock">주식</option>
-                <option value="etf">ETF</option>
-                <option value="crypto">가상화폐</option>
-              </select>
-              <select value={pMarket} onChange={e => setPMarket(e.target.value)} className="bg-black/5 border border-black/5 rounded-xl px-4 py-3 text-sm outline-none">
-                <option value="KR">한국(KR)</option>
-                <option value="US">미국(US)</option>
-              </select>
-              <button type="submit" disabled={loading} className="bg-primary hover:bg-blue-600 text-white rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-1">
-                <Plus className="w-4 h-4" /> 등록
-              </button>
-            </form>
+        <div className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm space-y-6">
+          <h3 className="text-sm font-black text-slate-900 flex items-center gap-2">
+            <Database className="w-4 h-4 text-primary" /> 종목 정보 등록
+          </h3>
+          
+          <form onSubmit={handleAddProduct} className="grid grid-cols-2 gap-2">
+            <input type="text" placeholder="종목명" value={pName} onChange={e => setPName(e.target.value)} className="col-span-2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold focus:ring-1 focus:ring-primary outline-none" />
+            <input type="text" placeholder="심볼(코드)" value={pSymbol} onChange={e => setPSymbol(e.target.value)} className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold focus:ring-1 focus:ring-primary outline-none" />
+            <select value={pType} onChange={e => setPType(e.target.value)} className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold outline-none">
+              <option value="stock">주식</option>
+              <option value="etf">ETF</option>
+              <option value="crypto">가상화폐</option>
+            </select>
+            <select value={pMarket} onChange={e => setPMarket(e.target.value)} className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold outline-none">
+              <option value="KR">한국(KR)</option>
+              <option value="US">미국(US)</option>
+            </select>
+            <button type="submit" disabled={loading} className="col-span-2 bg-primary hover:bg-amber-400 text-slate-900 rounded-xl font-black text-xs py-2.5 transition-all flex items-center justify-center gap-1 shadow-sm">
+              <Plus className="w-3.5 h-3.5" /> 종목 추가
+            </button>
+          </form>
 
-            <div className="relative py-4 flex items-center">
-              <div className="flex-grow border-t border-black/5"></div>
-              <span className="flex-shrink mx-4 text-[10px] font-bold text-slate-300 uppercase tracking-widest">OR</span>
-              <div className="flex-grow border-t border-black/5"></div>
-            </div>
-
-            {/* CSV Zone */}
-            <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-slate-100 rounded-3xl hover:border-primary hover:bg-primary/5 transition-all cursor-pointer group">
-              <FileUp className="w-6 h-6 text-slate-300 group-hover:text-primary mb-2" />
-              <span className="text-xs font-bold text-slate-500">종목 CSV 업로드</span>
-              <input type="file" className="hidden" accept=".csv" onChange={handleProductImport} disabled={loading} />
-            </label>
+          <div className="relative py-2 flex items-center">
+            <div className="flex-grow border-t border-slate-100"></div>
+            <span className="flex-shrink mx-4 text-[9px] font-black text-slate-300 uppercase">CSV Upload</span>
+            <div className="flex-grow border-t border-slate-100"></div>
           </div>
+
+          <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-slate-100 rounded-3xl hover:border-primary hover:bg-primary/5 transition-all cursor-pointer group">
+            <FileUp className="w-5 h-5 text-slate-200 group-hover:text-primary mb-1.5" />
+            <span className="text-[10px] font-black text-slate-400">파일 선택</span>
+            <input type="file" className="hidden" accept=".csv" onChange={handleProductImport} disabled={loading} />
+          </label>
         </div>
 
         {/* Section: Price History */}
-        <div className="space-y-6">
-          <div className="glass p-6 rounded-[2rem] border border-black/5 space-y-6">
-            <h3 className="text-lg font-black text-slate-900 flex items-center gap-2">
-              <Coins className="w-5 h-5 text-accent" /> 가격 데이터 등록
-            </h3>
+        <div className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm space-y-6">
+          <h3 className="text-sm font-black text-slate-900 flex items-center gap-2">
+            <Coins className="w-4 h-4 text-slate-300" /> 가격 데이터 등록
+          </h3>
 
-            {/* Manual Form */}
-            <form onSubmit={handleAddPrice} className="grid grid-cols-2 gap-3">
-              <input type="text" placeholder="심볼(코드)" value={prSymbol} onChange={e => setPrSymbol(e.target.value)} className="bg-black/5 border border-black/5 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-accent/20 outline-none" />
-              <input type="number" placeholder="가격" value={prPrice} onChange={e => setPrPrice(e.target.value)} className="bg-black/5 border border-black/5 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-accent/20 outline-none" />
-              <input type="date" value={prDate} onChange={e => setPrDate(e.target.value)} className="bg-black/5 border border-black/5 rounded-xl px-4 py-3 text-sm outline-none" />
-              <button type="submit" disabled={loading} className="bg-accent hover:bg-amber-600 text-white rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-1">
-                <Plus className="w-4 h-4" /> 등록
-              </button>
-            </form>
+          <form onSubmit={handleAddPrice} className="grid grid-cols-2 gap-2">
+            <input type="text" placeholder="심볼(코드)" value={prSymbol} onChange={e => setPrSymbol(e.target.value)} className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold focus:ring-1 focus:ring-primary outline-none" />
+            <input type="number" placeholder="가격" value={prPrice} onChange={e => setPrPrice(e.target.value)} className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold focus:ring-1 focus:ring-primary outline-none" />
+            <input type="date" value={prDate} onChange={e => setPrDate(e.target.value)} className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold outline-none col-span-2" />
+            <button type="submit" disabled={loading} className="col-span-2 bg-slate-800 hover:bg-slate-900 text-white rounded-xl font-black text-xs py-2.5 transition-all flex items-center justify-center gap-1 shadow-sm">
+              <Plus className="w-3.5 h-3.5" /> 가격 추가
+            </button>
+          </form>
 
-            <div className="relative py-4 flex items-center">
-              <div className="flex-grow border-t border-black/5"></div>
-              <span className="flex-shrink mx-4 text-[10px] font-bold text-slate-300 uppercase tracking-widest">OR</span>
-              <div className="flex-grow border-t border-black/5"></div>
-            </div>
-
-            {/* CSV Zone */}
-            <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-slate-100 rounded-3xl hover:border-accent hover:bg-accent/5 transition-all cursor-pointer group">
-              <FileUp className="w-6 h-6 text-slate-300 group-hover:text-accent mb-2" />
-              <span className="text-xs font-bold text-slate-500">가격 CSV 업로드</span>
-              <input type="file" className="hidden" accept=".csv" onChange={handlePriceImport} disabled={loading} />
-            </label>
+          <div className="relative py-2 flex items-center">
+            <div className="flex-grow border-t border-slate-100"></div>
+            <span className="flex-shrink mx-4 text-[9px] font-black text-slate-300 uppercase">CSV Upload</span>
+            <div className="flex-grow border-t border-slate-100"></div>
           </div>
+
+          <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-slate-100 rounded-3xl hover:border-slate-800 hover:bg-slate-50 transition-all cursor-pointer group">
+            <FileUp className="w-5 h-5 text-slate-200 group-hover:text-slate-800 mb-1.5" />
+            <span className="text-[10px] font-black text-slate-400">파일 선택</span>
+            <input type="file" className="hidden" accept=".csv" onChange={handlePriceImport} disabled={loading} />
+          </label>
         </div>
       </div>
 
-      {/* Guide Card */}
-      <div className="glass p-8 rounded-[2rem] border border-black/5 bg-white/50 flex flex-col md:flex-row gap-8">
-        <div className="flex-1 space-y-4">
-          <div className="flex items-center gap-2 text-primary font-bold text-sm">
-            <Info className="w-4 h-4" /> 종목 CSV 양식 가이드
+      {/* Guide Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-12">
+        <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200">
+          <div className="flex items-center gap-2 text-primary font-black text-[10px] uppercase mb-3">
+            <Info className="w-3 h-3" /> Product CSV Guide
           </div>
-          <div className="bg-slate-900 text-slate-300 p-4 rounded-2xl font-mono text-[11px] leading-relaxed">
+          <div className="bg-slate-900 text-slate-400 p-3 rounded-xl font-mono text-[9px] leading-relaxed">
             name, symbol, type, market<br/>
-            삼성전자, 005930, stock, KR<br/>
-            Apple, AAPL, stock, US
+            삼성전자, 005930, stock, KR
           </div>
         </div>
-        <div className="flex-1 space-y-4">
-          <div className="flex items-center gap-2 text-accent font-bold text-sm">
-            <Info className="w-4 h-4" /> 가격 CSV 양식 가이드
+        <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200">
+          <div className="flex items-center gap-2 text-slate-500 font-black text-[10px] uppercase mb-3">
+            <Info className="w-3 h-3" /> Price CSV Guide
           </div>
-          <div className="bg-slate-900 text-slate-300 p-4 rounded-2xl font-mono text-[11px] leading-relaxed">
+          <div className="bg-slate-900 text-slate-400 p-3 rounded-xl font-mono text-[9px] leading-relaxed">
             symbol, price, price_date<br/>
-            005930, 75200, 2026-04-25<br/>
-            AAPL, 185.2, 2026-04-24
+            005930, 75200, 2026-04-25
           </div>
         </div>
       </div>

@@ -18,13 +18,13 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab }) =>
   return (
     <div className="min-h-screen upward-gradient text-slate-800 flex flex-col">
       {/* Header */}
-      <header className="glass sticky top-0 z-50 px-4 py-4 flex items-center justify-between">
+      <header className="glass sticky top-0 z-50 px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="bg-primary p-2 rounded-lg shadow-lg shadow-primary/20">
-            <TrendingUp className="w-6 h-6 text-white" />
+          <div className="bg-primary p-2 rounded-lg shadow-lg shadow-primary/30">
+            <TrendingUp className="w-6 h-6 text-slate-900" />
           </div>
-          <h1 className="text-xl font-bold tracking-tight text-slate-900">
-            우상향 <span className="text-primary">마이 자산라이프</span>
+          <h1 className="text-xl font-black tracking-tighter text-slate-900">
+            우상향 <span className="text-primary">자산관리</span>
           </h1>
         </div>
         <div className="hidden md:flex gap-1 bg-black/5 p-1 rounded-xl">
@@ -32,9 +32,9 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab }) =>
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+              className={`px-5 py-2 rounded-lg text-sm font-bold transition-all ${
                 activeTab === tab.id
-                  ? 'bg-primary text-white shadow-md'
+                  ? 'bg-primary text-slate-900 shadow-md'
                   : 'hover:bg-black/5 text-slate-500'
               }`}
             >
