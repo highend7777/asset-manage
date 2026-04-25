@@ -135,25 +135,28 @@ const Dashboard = () => {
                   paddingAngle={8}
                   dataKey="value"
                 >
-                  {typeData.map((entry, index) => (
+                  {typeData.map((_, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} stroke="none" />
                   ))}
                 </Pie>
                 <Tooltip 
                   contentStyle={{ borderRadius: '1rem', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
-                  formatter={(value: number) => `₩${value.toLocaleString()}`}
+                  formatter={(value: any) => `₩${Number(value).toLocaleString()}`}
                 />
               </PieChart>
             </ResponsiveContainer>
           </div>
           <div className="grid grid-cols-2 gap-3 mt-4">
-            {typeData.map((entry, index) => (
-              <div key={entry.name} className="flex items-center gap-2 px-3 py-2 rounded-xl bg-slate-50 border border-black/5">
-                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
-                <span className="text-xs font-bold text-slate-600">{entry.name}</span>
-                <span className="text-xs font-black text-slate-900 ml-auto">{Math.round((entry.value / totalAssets) * 100)}%</span>
-              </div>
-            ))}
+            {typeData.map((_, index) => {
+              const entry = typeData[index];
+              return (
+                <div key={entry.name} className="flex items-center gap-2 px-3 py-2 rounded-xl bg-slate-50 border border-black/5">
+                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
+                  <span className="text-xs font-bold text-slate-600">{entry.name}</span>
+                  <span className="text-xs font-black text-slate-900 ml-auto">{Math.round((entry.value / totalAssets) * 100)}%</span>
+                </div>
+              )
+            })}
           </div>
         </div>
 
@@ -171,10 +174,10 @@ const Dashboard = () => {
                 <Tooltip 
                   cursor={{ fill: 'transparent' }}
                   contentStyle={{ borderRadius: '1rem', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
-                  formatter={(value: number) => `₩${value.toLocaleString()}`}
+                  formatter={(value: any) => `₩${Number(value).toLocaleString()}`}
                 />
                 <Bar dataKey="value" radius={[0, 12, 12, 0]}>
-                  {memberData.map((entry, index) => (
+                  {memberData.map((_, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[(index + 2) % COLORS.length]} />
                   ))}
                 </Bar>

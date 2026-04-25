@@ -39,7 +39,7 @@ const AdminSection = () => {
     if (!pName || !pSymbol) return
     setLoading(true)
     const { error } = await supabase.from('products').upsert([{
-      name: pName, symbol: pSymbol, type: pType, market: pPMarket
+      name: pName, symbol: pSymbol, type: pType, market: pMarket
     }], { onConflict: 'symbol,market' })
     
     if (error) setError(`종목 등록 실패: ${error.message}`)
