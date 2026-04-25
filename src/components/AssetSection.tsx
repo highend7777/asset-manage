@@ -95,8 +95,7 @@ const AssetSection = () => {
       type,
       name,
       amount: parseFloat(amount),
-      symbol: symbol || null,
-      current_value: parseFloat(amount)
+      symbol: symbol || null
     }])
 
     if (error) {

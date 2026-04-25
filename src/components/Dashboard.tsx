@@ -1,89 +1,128 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
-import type { Asset } from '../lib/supabase'
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts'
-import { TrendingUp, Wallet } from 'lucide-react'
+import type { Asset, FamilyMember } from '../lib/supabase'
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts'
+import { Wallet, TrendingUp, Users, Calendar, Filter } from 'lucide-react'
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899']
 
 const Dashboard = () => {
   const [assets, setAssets] = useState<Asset[]>([])
+  const [members, setMembers] = useState<FamilyMember[]>([])
+  const [loading, setLoading] = useState(true)
+  const [valuationDate, setValuationDate] = useState(new Date().toISOString().split('T')[0])
 
   useEffect(() => {
-    fetchAssets()
-  }, [])
+    fetchData()
+  }, [valuationDate])
 
-  async function fetchAssets() {
-    const { data } = await supabase.from('assets').select('*')
-    setAssets(data || [])
+  async function fetchData() {
+    setLoading(true)
+    
+    // 1. 가족 및 자산 기본 데이터 로드
+    const [mRes, aRes] = await Promise.all([
+      supabase.from('family_members').select('*'),
+      supabase.from('assets').select('*')
+    ])
+
+    const membersData = mRes.data || []
+    const assetsData = aRes.data || []
+
+    // 2. 각 자산의 심볼별로 선택한 날짜 기준 가장 최근 가격 가져오기
+    const symbols = Array.from(new Set(assetsData.map(a => a.symbol).filter(Boolean)))
+    
+    let pricesMap: Record<string, number> = {}
+
+    if (symbols.length > 0) {
+      // 심볼별로 valuationDate 이하인 데이터 중 가장 최신 데이터 1개씩 조회
+      // (Supabase JS 클라이언트 제약으로 개별 조회 혹은 RPC 필요, 여기서는 루프를 활용하되 최적화 고려)
+      const pricePromises = symbols.map(async (symbol) => {
+        const { data } = await supabase
+          .from('product_prices')
+          .select('price')
+          .eq('symbol', symbol)
+          .lte('price_date', valuationDate)
+          .order('price_date', { ascending: false })
+          .limit(1)
+        
+        return { symbol, price: data?.[0]?.price || 0 }
+      })
+
+      const prices = await Promise.all(pricePromises)
+      prices.forEach(p => {
+        if (p.symbol) pricesMap[p.symbol] = p.price
+      })
+    }
+
+    // 3. 자산 데이터에 조회된 가격 적용하여 현재가 계산
+    const evaluatedAssets = assetsData.map(asset => ({
+      ...asset,
+      current_value: asset.symbol ? (pricesMap[asset.symbol] || 0) * asset.amount : asset.amount // 현금 등 심볼 없는 경우 금액 그대로
+    }))
+
+    setMembers(membersData)
+    setAssets(evaluatedAssets)
+    setLoading(false)
   }
 
-  // Data Processing
-  const typeData = assets.reduce((acc: any[], asset) => {
-    const existing = acc.find(item => item.name === asset.type)
-    if (existing) {
-      existing.value += Number(asset.amount)
-    } else {
-      acc.push({ name: asset.type, value: Number(asset.amount) })
-    }
-    return acc
-  }, [])
+  // 데이터 가공 (차트용)
+  const totalAssets = assets.reduce((sum, a) => sum + (Number(a.current_value) || 0), 0)
+  
+  const typeData = [
+    { name: '주식', value: assets.filter(a => a.type === 'stock').reduce((sum, a) => sum + Number(a.current_value), 0) },
+    { name: '채권', value: assets.filter(a => a.type === 'bond').reduce((sum, a) => sum + Number(a.current_value), 0) },
+    { name: '현금', value: assets.filter(a => a.type === 'cash').reduce((sum, a) => sum + Number(a.current_value), 0) },
+    { name: '가상화폐', value: assets.filter(a => a.type === 'crypto').reduce((sum, a) => sum + Number(a.current_value), 0) },
+  ].filter(d => d.value > 0)
 
-  const totalValue = assets.reduce((sum, asset) => sum + Number(asset.amount), 0)
+  const memberData = members.map(m => ({
+    name: m.name,
+    value: assets.filter(a => a.member_id === m.id).reduce((sum, a) => sum + Number(a.current_value), 0)
+  })).filter(d => d.value > 0)
+
+  if (loading) return (
+    <div className="flex items-center justify-center h-64">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+    </div>
+  )
 
   return (
-    <div className="space-y-6 animate-in fade-in zoom-in-95 duration-700">
-      {/* Stat Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="glass p-6 rounded-3xl border-l-4 border-primary">
-          <div className="flex justify-between items-start">
-            <div>
-              <p className="text-sm text-slate-500 font-medium">총 자산 평가액</p>
-              <h3 className="text-3xl font-bold mt-1 text-slate-900">₩{totalValue.toLocaleString()}</h3>
-            </div>
-            <div className="bg-primary/10 p-3 rounded-2xl">
-              <Wallet className="text-primary w-6 h-6" />
-            </div>
+    <div className="space-y-8 animate-in fade-in duration-700">
+      {/* Date Filter & Summary Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-[2rem] border border-black/5 shadow-sm">
+        <div className="flex items-center gap-4">
+          <div className="bg-primary/10 p-3 rounded-2xl">
+            <Wallet className="text-primary w-8 h-8" />
           </div>
-          <div className="mt-4 flex items-center gap-1 text-secondary text-sm font-semibold">
-            <TrendingUp className="w-4 h-4" />
-            <span>지난달 대비 +2.4%</span>
+          <div>
+            <h2 className="text-sm font-bold text-slate-500 uppercase tracking-wider">총 자산 평가액</h2>
+            <p className="text-3xl font-black text-slate-900">₩{totalAssets.toLocaleString()}</p>
           </div>
         </div>
 
-        <div className="glass p-6 rounded-3xl border-l-4 border-secondary">
-          <div className="flex justify-between items-start">
-            <div>
-              <p className="text-sm text-slate-500 font-medium">이번 달 수익금</p>
-              <h3 className="text-3xl font-bold mt-1 text-secondary">₩4,250,000</h3>
-            </div>
-            <div className="bg-secondary/10 p-3 rounded-2xl">
-              <TrendingUp className="text-secondary w-6 h-6" />
-            </div>
+        <div className="flex items-center gap-3 bg-slate-50 p-2 rounded-2xl border border-black/5">
+          <div className="pl-3 flex items-center gap-2 text-slate-500">
+            <Calendar className="w-4 h-4" />
+            <span className="text-xs font-bold">조회 기준일</span>
           </div>
-          <p className="mt-4 text-slate-400 text-xs italic">*수기 입력 데이터 기반 시뮬레이션</p>
-        </div>
-
-        <div className="glass p-6 rounded-3xl border-l-4 border-accent">
-          <div className="flex justify-between items-start">
-            <div>
-              <p className="text-sm text-slate-500 font-medium">투자 자산 비중</p>
-              <h3 className="text-3xl font-bold mt-1 text-slate-900">72.5%</h3>
-            </div>
-            <div className="bg-accent/10 p-3 rounded-2xl">
-              <BarChart3 className="text-accent w-6 h-6" />
-            </div>
-          </div>
-          <div className="mt-4 w-full bg-black/5 h-2 rounded-full overflow-hidden">
-            <div className="bg-accent h-full" style={{ width: '72.5%' }} />
+          <input 
+            type="date" 
+            value={valuationDate}
+            onChange={(e) => setValuationDate(e.target.value)}
+            className="bg-white border-none rounded-xl px-4 py-2 text-sm font-bold text-primary focus:ring-2 focus:ring-primary/20 outline-none shadow-sm"
+          />
+          <div className="pr-2">
+            <Filter className="w-4 h-4 text-slate-300" />
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Pie Chart */}
-        <div className="glass p-8 rounded-3xl">
-          <h4 className="text-lg font-bold mb-6 text-slate-800">자산 구성비 (유형별)</h4>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        {/* Asset Type Chart */}
+        <div className="glass p-8 rounded-[2.5rem] border border-black/5">
+          <h3 className="text-lg font-black text-slate-900 mb-6 flex items-center gap-2">
+            <TrendingUp className="text-primary w-5 h-5" /> 자산 구성 (유형별)
+          </h3>
           <div className="h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -91,44 +130,54 @@ const Dashboard = () => {
                   data={typeData}
                   cx="50%"
                   cy="50%"
-                  innerRadius={60}
-                  outerRadius={80}
-                  paddingAngle={5}
+                  innerRadius={80}
+                  outerRadius={110}
+                  paddingAngle={8}
                   dataKey="value"
                 >
-                  {typeData.map((_, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  {typeData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} stroke="none" />
                   ))}
                 </Pie>
                 <Tooltip 
-                  contentStyle={{ backgroundColor: '#fff', border: '1px solid #e2e8f0', borderRadius: '12px', color: '#1e293b' }}
-                  itemStyle={{ color: '#1e293b' }}
+                  contentStyle={{ borderRadius: '1rem', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                  formatter={(value: number) => `₩${value.toLocaleString()}`}
                 />
-                <Legend verticalAlign="bottom" height={36}/>
               </PieChart>
             </ResponsiveContainer>
           </div>
+          <div className="grid grid-cols-2 gap-3 mt-4">
+            {typeData.map((entry, index) => (
+              <div key={entry.name} className="flex items-center gap-2 px-3 py-2 rounded-xl bg-slate-50 border border-black/5">
+                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
+                <span className="text-xs font-bold text-slate-600">{entry.name}</span>
+                <span className="text-xs font-black text-slate-900 ml-auto">{Math.round((entry.value / totalAssets) * 100)}%</span>
+              </div>
+            ))}
+          </div>
         </div>
 
-        {/* Bar Chart Mockup for Growth */}
-        <div className="glass p-8 rounded-3xl">
-          <h4 className="text-lg font-bold mb-6 text-slate-800">자산 성장 추이</h4>
+        {/* Member Asset Chart */}
+        <div className="glass p-8 rounded-[2.5rem] border border-black/5">
+          <h3 className="text-lg font-black text-slate-900 mb-6 flex items-center gap-2">
+            <Users className="text-secondary w-5 h-5" /> 자산 현황 (가족별)
+          </h3>
           <div className="h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={[
-                { month: '1월', value: 4500 },
-                { month: '2월', value: 4800 },
-                { month: '3월', value: 4700 },
-                { month: '4월', value: 5200 },
-              ]}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
-                <XAxis dataKey="month" stroke="#64748b" />
-                <YAxis stroke="#64748b" />
+              <BarChart data={memberData} layout="vertical">
+                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
+                <XAxis type="number" hide />
+                <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{ fontSize: 12, fontWeight: 700, fill: '#64748b' }} />
                 <Tooltip 
-                  cursor={{ fill: '#00000005' }}
-                  contentStyle={{ backgroundColor: '#fff', border: '1px solid #e2e8f0', borderRadius: '12px', color: '#1e293b' }}
+                  cursor={{ fill: 'transparent' }}
+                  contentStyle={{ borderRadius: '1rem', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                  formatter={(value: number) => `₩${value.toLocaleString()}`}
                 />
-                <Bar dataKey="value" fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={40} />
+                <Bar dataKey="value" radius={[0, 12, 12, 0]}>
+                  {memberData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[(index + 2) % COLORS.length]} />
+                  ))}
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -137,8 +186,5 @@ const Dashboard = () => {
     </div>
   )
 }
-
-// Icon Import fix
-import { BarChart3 } from 'lucide-react'
 
 export default Dashboard

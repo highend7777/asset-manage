@@ -39,6 +39,14 @@ export interface Asset {
   created_at: string
 }
 
+export interface ProductPrice {
+  id: string
+  symbol: string
+  price: number
+  price_date: string
+  created_at: string
+}
+
 export type NewsItem = {
   id: string
   asset_symbol: string
