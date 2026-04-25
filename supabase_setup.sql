@@ -38,6 +38,7 @@ CREATE TABLE assets (
     amount DECIMAL NOT NULL,
     currency TEXT DEFAULT 'KRW',
     symbol TEXT,
+    asset_date DATE DEFAULT CURRENT_DATE, -- 자산 취득/등록일
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 

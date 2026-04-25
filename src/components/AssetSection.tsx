@@ -55,15 +55,30 @@ const AssetSection = () => {
       supabase.from('accounts').select('*').order('name')
     ])
 
-    if (mRes.error) setError(`가족 데이터 로드 실패: ${mRes.error.message}`)
-    if (aRes.error) setError(`자산 데이터 로드 실패: ${aRes.error.message}`)
-    if (acRes.error) setError(`계좌 데이터 로드 실패: ${acRes.error.message}`)
-
     setMembers(mRes.data || [])
-    setAssets(aRes.data || [])
     setAccounts(acRes.data || [])
-    
-    if (mRes.data && mRes.data.length > 0) setMemberId(mRes.data[0].id)
+
+    // 자산별로 등록일 기준 가격 조회
+    const rawAssets = aRes.data || []
+    const evaluatedAssets = await Promise.all(rawAssets.map(async (asset) => {
+      if (!asset.symbol) return asset
+
+      const { data: priceData } = await supabase
+        .from('product_prices')
+        .select('price')
+        .eq('symbol', asset.symbol)
+        .lte('price_date', asset.asset_date)
+        .order('price_date', { ascending: false })
+        .limit(1)
+      
+      return {
+        ...asset,
+        current_value: priceData?.[0]?.price ? priceData[0].price * asset.amount : 0,
+        registered_price: priceData?.[0]?.price || 0
+      }
+    }))
+
+    setAssets(evaluatedAssets as any)
     setLoading(false)
   }
 
@@ -95,7 +110,8 @@ const AssetSection = () => {
       type,
       name,
       amount: parseFloat(amount),
-      symbol: symbol || null
+      symbol: symbol || null,
+      asset_date: assetDate
     }])
 
     if (error) {
@@ -135,7 +151,7 @@ const AssetSection = () => {
         <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
           <Wallet className="text-primary" /> 신규 자산 등록
         </h2>
-        <form onSubmit={addAsset} className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        <form onSubmit={addAsset} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-4">
           <div className="flex flex-col gap-1">
             <label className="text-xs text-slate-500 ml-1">소유자</label>
             <select
@@ -146,6 +162,15 @@ const AssetSection = () => {
               {members.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
               {members.length === 0 && <option value="">구성원 먼저 등록</option>}
             </select>
+          </div>
+          <div className="flex flex-col gap-1">
+            <label className="text-xs text-slate-500 ml-1">등록일</label>
+            <input
+              type="date"
+              value={assetDate}
+              onChange={(e) => setAssetDate(e.target.value)}
+              className="bg-black/5 border border-black/10 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/50 text-slate-800"
+            />
           </div>
           <div className="flex flex-col gap-1">
             <label className="text-xs text-slate-500 ml-1">계좌</label>
@@ -243,20 +268,22 @@ const AssetSection = () => {
           <table className="w-full text-left border-collapse">
             <thead className="bg-black/5 border-b border-black/5">
               <tr>
+                <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">등록일</th>
                 <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">소유자</th>
                 <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">계좌</th>
-                <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">유형</th>
                 <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">자산명</th>
+                <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">등록일 가격</th>
                 <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">금액/수량</th>
-                <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">코드</th>
+                <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">등록일 평가액</th>
                 <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">삭제</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-black/5">
-              {assets.map((asset) => {
+              {assets.map((asset: any) => {
                 const account = accounts.find(a => a.id === asset.account_id)
                 return (
                   <tr key={asset.id} className="hover:bg-black/5 transition-colors group">
+                    <td className="px-6 py-4 text-xs text-slate-500 font-medium">{asset.asset_date}</td>
                     <td className="px-6 py-4 font-medium text-slate-800">{members.find(m => m.id === asset.member_id)?.name || '알수없음'}</td>
                     <td className="px-6 py-4">
                       {account ? (
@@ -267,14 +294,18 @@ const AssetSection = () => {
                       ) : '-'}
                     </td>
                     <td className="px-6 py-4">
-                      <div className="flex items-center gap-2">
-                        {getAssetIcon(asset.type)}
-                        <span className="capitalize text-slate-700">{asset.type}</span>
+                      <div className="flex flex-col">
+                        <span className="font-bold text-slate-900">{asset.name}</span>
+                        <span className="text-[10px] text-slate-400 uppercase">{asset.symbol}</span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 font-bold text-slate-900">{asset.name}</td>
+                    <td className="px-6 py-4 text-slate-600 font-medium">
+                      {asset.registered_price ? `₩${asset.registered_price.toLocaleString()}` : '-'}
+                    </td>
                     <td className="px-6 py-4 text-slate-800">{asset.amount.toLocaleString()}</td>
-                    <td className="px-6 py-4 text-slate-500">{asset.symbol || '-'}</td>
+                    <td className="px-6 py-4 font-black text-primary">
+                      {asset.current_value ? `₩${asset.current_value.toLocaleString()}` : '₩0'}
+                    </td>
                     <td className="px-6 py-4 text-right">
                       <button
                         onClick={() => deleteAsset(asset.id)}
@@ -288,7 +319,7 @@ const AssetSection = () => {
               })}
               {assets.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-slate-400">
+                  <td colSpan={8} className="px-6 py-12 text-center text-slate-400">
                     등록된 자산이 없습니다.
                   </td>
                 </tr>

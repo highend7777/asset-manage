@@ -35,6 +35,7 @@ export interface Asset {
   amount: number
   currency: string
   symbol?: string
+  asset_date: string
   current_value?: number
   created_at: string
 }
