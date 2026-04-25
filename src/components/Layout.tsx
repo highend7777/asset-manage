@@ -1,5 +1,5 @@
 import React from 'react'
-import { TrendingUp, Users, Newspaper, BarChart3, Settings } from 'lucide-react'
+import { TrendingUp, Newspaper, BarChart3, Settings } from 'lucide-react'
 
 interface LayoutProps {
   children: React.ReactNode

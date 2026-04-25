@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
-import type { FamilyMember, Asset } from '../lib/supabase'
+import type { FamilyMember, Asset, Account } from '../lib/supabase'
+import React from 'react'
 import { Wallet, Plus, Trash2, TrendingUp, Landmark, Banknote, Bitcoin } from 'lucide-react'
 
 const AssetSection = () => {
