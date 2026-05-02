@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
-import type { Account, Product, Transaction, AssetCategory } from '../lib/supabase'
-import { Landmark, Package, History, Coins, Plus, Trash2, Calendar, FileUp, Info, Activity } from 'lucide-react'
+import type { Account, Product, AssetCategory } from '../lib/supabase'
+import { Landmark, Package, History, Coins, Trash2, FileUp, Info, Activity } from 'lucide-react'
 
 const AssetSection = () => {
   const [activeSubTab, setActiveSubTab] = useState<'account' | 'product' | 'transaction' | 'price' | 'dividend'>('account')

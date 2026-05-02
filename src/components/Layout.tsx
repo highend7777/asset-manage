@@ -1,6 +1,5 @@
-import { ReactNode } from 'react'
-import { supabase } from '../lib/supabase'
-import { LogOut, Sparkles, LayoutDashboard, Wallet, Newspaper, Settings } from 'lucide-react'
+import type { ReactNode } from 'react'
+import { Sparkles, LayoutDashboard, Wallet, Newspaper, Settings } from 'lucide-react'
 
 interface LayoutProps {
   children: ReactNode
@@ -9,9 +8,6 @@ interface LayoutProps {
 }
 
 const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab }) => {
-  const handleLogout = async () => {
-    await supabase.auth.signOut()
-  }
 
   const menuItems = [
     { id: 'dashboard', label: '대시보드', icon: LayoutDashboard },

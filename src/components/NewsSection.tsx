@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
-import type { Transaction, Product, NewsItem } from '../lib/supabase'
+import type { NewsItem } from '../lib/supabase'
 import { analyzeNews } from '../lib/gemini'
 import { Newspaper, RefreshCw, AlertCircle, ExternalLink, Flame, Sparkles } from 'lucide-react'
 

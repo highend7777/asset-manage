@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
-import type { Transaction, Product, ProductPrice, Dividend } from '../lib/supabase'
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts'
-import { Wallet, TrendingUp, Calendar, PieChart as PieIcon, Activity, Sparkles, Coins } from 'lucide-react'
+import { Wallet, Calendar, PieChart as PieIcon, Coins } from 'lucide-react'
 
 const COLORS = { stock: '#FFCC00', bond: '#4D4D4D', cash: '#888888', crypto: '#2E2E2E', etc: '#E0E0E0' }
 const CATEGORY_NAMES = { stock: '주식/ETF', bond: '채권', cash: '현금', crypto: '가상화폐', etc: '기타' }
