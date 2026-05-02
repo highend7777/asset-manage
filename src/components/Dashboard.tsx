@@ -142,7 +142,7 @@ const Dashboard = () => {
         <div className="lg:col-span-3 smart-card p-8">
           <div className="flex items-center justify-between mb-8"><h3 className="text-sm font-black text-text-main flex items-center gap-2 uppercase tracking-widest"><PieIcon className="text-primary w-5 h-5" /> 자산비중분석</h3></div>
           <div className="h-[300px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minHeight={1}>
               <PieChart>
                 <Pie data={chartData} cx="50%" cy="50%" innerRadius={80} outerRadius={110} paddingAngle={5} dataKey="value">
                   {chartData.map((entry) => (<Cell key={`cell-${entry.key}`} fill={COLORS[entry.key as keyof typeof COLORS]} stroke="#fff" strokeWidth={2} />))}
