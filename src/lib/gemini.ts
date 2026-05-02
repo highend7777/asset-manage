@@ -4,7 +4,7 @@ const apiKey = import.meta.env.VITE_GEMINI_API_KEY
 const genAI = apiKey ? new GoogleGenerativeAI(apiKey) : null
 
 // 모델 설정
-const MODEL_NAME = 'gemini-pro' 
+const MODEL_NAME = 'gemini-3.0-flash' 
 
 export const getGeminiModel = () => {
   if (!genAI) {
