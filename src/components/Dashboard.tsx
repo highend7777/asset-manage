@@ -147,7 +147,7 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="space-y-8 animate-kb-fade">
+    <div className="space-y-4 animate-kb-fade">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-2xl border border-border-point shadow-sm">
           <Calendar className="w-4 h-4 text-text-sub" />
@@ -155,8 +155,8 @@ const Dashboard = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-        <div className="lg:col-span-3 smart-card p-8 bg-primary border-none shadow-lg shadow-primary/20">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+        <div className="lg:col-span-3 smart-card p-6 bg-primary border-none shadow-lg shadow-primary/20">
           <div className="flex justify-between items-start">
             <div>
               <p className="text-text-main/60 font-black text-[10px] uppercase tracking-[0.2em] mb-1">총자산(원화)</p>
@@ -165,7 +165,7 @@ const Dashboard = () => {
             <div className="bg-white/40 p-4 rounded-3xl backdrop-blur-md"><Wallet className="w-8 h-8 text-text-main" /></div>
           </div>
         </div>
-        <div className="lg:col-span-2 smart-card p-8 flex flex-col justify-center bg-white border-primary/30 border-2">
+        <div className="lg:col-span-2 smart-card p-6 flex flex-col justify-center bg-white border-primary/30 border-2">
           <div className="flex items-center gap-3 mb-4">
             <div className="p-2 bg-primary/10 rounded-xl"><Coins className="w-5 h-5 text-primary-dark" /></div>
             <span className="text-sm font-black text-text-main">이달의 예상 배당금</span>
@@ -174,15 +174,15 @@ const Dashboard = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-        <div className="lg:col-span-3 smart-card p-8">
-          <div className="flex items-center justify-between mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+        <div className="lg:col-span-3 smart-card p-6">
+          <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-black text-text-main flex items-center gap-2 uppercase tracking-widest">
               <PieIcon className="text-primary w-5 h-5" /> 자산비중분석
             </h3>
             <p className="text-[10px] font-bold text-text-sub">차트 조각을 클릭하면 해당 자산만 상세 목록에 표시됩니다.</p>
           </div>
-          <div className="h-[300px] w-full">
+          <div className="h-[200px] w-full">
             <ResponsiveContainer width="100%" height="100%" minHeight={1}>
               <PieChart>
                 <Pie 
@@ -217,10 +217,10 @@ const Dashboard = () => {
             </ResponsiveContainer>
           </div>
         </div>
-        <div className="lg:col-span-2 space-y-6">
-          <div className="smart-card p-6 h-[400px] overflow-y-auto">
-            <h4 className="text-xs font-black text-text-main mb-6 flex items-center justify-between">최근 거래 내역</h4>
-            <div className="space-y-5">
+        <div className="lg:col-span-2 space-y-4">
+          <div className="smart-card p-6 h-[256px] overflow-y-auto">
+            <h4 className="text-xs font-black text-text-main mb-4 flex items-center justify-between">최근 거래 내역</h4>
+            <div className="space-y-4">
               {recentTransactions.map(t => (
                 <div key={t.id} className="flex items-center justify-between pb-4 border-b border-bg-point last:border-0 last:pb-0">
                   <div className="flex items-center gap-3">
@@ -242,8 +242,8 @@ const Dashboard = () => {
       </div>
 
       {/* 자산 상세 리스트 추가 */}
-      <div className="smart-card p-8 bg-white mt-8">
-        <div className="flex items-center justify-between mb-6">
+      <div className="smart-card p-6 bg-white mt-4">
+        <div className="flex items-center justify-between mb-4">
           <h3 className="text-sm font-black text-text-main flex items-center gap-2 uppercase tracking-widest">
             <List className="text-primary w-5 h-5" /> 자산 상세 리스트
           </h3>
