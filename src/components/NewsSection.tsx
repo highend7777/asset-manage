@@ -1,137 +1,151 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
-import type { Asset, NewsItem } from '../lib/supabase'
+import type { Transaction, Product, NewsItem } from '../lib/supabase'
 import { analyzeNews } from '../lib/gemini'
-import { Newspaper, RefreshCw, AlertCircle, ExternalLink, Flame } from 'lucide-react'
+import { Newspaper, RefreshCw, AlertCircle, ExternalLink, Flame, Sparkles } from 'lucide-react'
 
 const NewsSection = () => {
-  const [assets, setAssets] = useState<Asset[]>([])
   const [news, setNews] = useState<NewsItem[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    fetchData()
+    fetchNews()
   }, [])
 
-  async function fetchData() {
-    const { data: aData } = await supabase.from('assets').select('*')
-    setAssets(aData || [])
-    
-    const { data: nData } = await supabase.from('news_cache').select('*').order('created_at', { ascending: false })
+  async function fetchNews() {
+    const { data: nData } = await supabase.from('news_cache').select('*').order('created_at', { ascending: false }).limit(10)
     setNews(nData || [])
   }
 
   async function handleAnalyze() {
-    if (assets.length === 0) {
-      setError('분석할 자산이 없습니다. 먼저 자산을 등록해주세요.')
-      return
-    }
-
     setLoading(true)
     setError(null)
     
     try {
-      const assetNames = assets.map(a => a.name)
-      // 실제 뉴스 API 연동 전 Mock 데이터 활용
+      // 1. 보유 종목 리스트 추출
+      const [transRes, prodRes] = await Promise.all([
+        supabase.from('transactions').select('*'),
+        supabase.from('products').select('*')
+      ])
+      
+      const transactions = transRes.data || []
+      const products = prodRes.data || []
+
+      const holdings: Record<string, number> = {}
+      transactions.forEach(t => {
+        holdings[t.product_id] = (holdings[t.product_id] || 0) + Number(t.amount)
+      })
+
+      const heldSymbols = products
+        .filter(p => (holdings[p.id] || 0) > 0)
+        .map(p => p.symbol)
+
+      if (heldSymbols.length === 0) {
+        setError('분석할 보유 종목이 없습니다. 구매 이력을 먼저 등록해주세요.')
+        setLoading(false)
+        return
+      }
+
+      // 2. 뉴스 분석 (Mock 데이터 활용)
       const mockNewsRaw = `
-        1. 삼성전자, 차세대 반도체 공정 양산 성공 발표. 파운드리 시장 점유율 확대 기대. (https://example.com/news1)
-        2. 미국 연준, 금리 동결 시사. 국채 수익률 하락하며 기술주 반등. (https://example.com/news2)
-        3. 비트코인, 현물 ETF 승인 이후 자금 유입 가속화. $65,000 돌파. (https://example.com/news3)
-        4. 글로벌 원자재 시장 불안정. 금값 사상 최고치 경신. (https://example.com/news4)
+        1. ${heldSymbols[0] || '삼성전자'}, 기술 혁신으로 시장 점유율 확대 전략 발표.
+        2. 미국 증시, 주요 ETF 자금 유입 지속되며 상승세 유지.
+        3. 글로벌 원자재 및 에너지 가격 변동성 확대.
       `
       
-      const analyzedNews = await analyzeNews(assetNames, mockNewsRaw)
+      const analyzedNews = await analyzeNews(heldSymbols, mockNewsRaw)
       
-      // 결과 저장
-      for (const item of analyzedNews) {
-        await supabase.from('news_cache').upsert([{
+      if (analyzedNews && Array.isArray(analyzedNews)) {
+        // 기존 데이터 삭제 (유저 구분 없이 전체 삭제 트릭 사용)
+        await supabase.from('news_cache').delete().neq('id', '00000000-0000-0000-0000-000000000000')
+        
+        const insertData = analyzedNews.map(item => ({
           asset_symbol: item.asset_symbol,
           title: item.title,
           summary: item.summary,
           relevance_score: item.relevance_score,
           importance: item.importance,
           source_url: item.source_url
-        }])
+        }))
+        
+        await supabase.from('news_cache').insert(insertData)
+        fetchNews()
       }
-      
-      fetchData()
     } catch (err: any) {
-      setError(err.message)
+      setError('AI 뉴스 분석 중 오류가 발생했습니다.')
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-700">
-      <div className="flex justify-between items-center bg-black/5 p-6 rounded-2xl border border-black/5">
+    <div className="space-y-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 smart-card p-6 border-none bg-white shadow-xl shadow-slate-200/50">
         <div>
-          <h2 className="text-xl font-bold flex items-center gap-2 text-slate-900">
-            <Newspaper className="text-primary" /> AI 맞춤형 투자 정보
+          <h2 className="text-xl font-black flex items-center gap-2 text-text-main">
+            <Sparkles className="text-primary w-5 h-5" /> 맞춤형 뉴스 브리핑
           </h2>
-          <p className="text-sm text-slate-500 mt-1">보유 자산과 연관된 뉴스만 Gemini가 선별해 드립니다.</p>
+          <p className="text-[10px] text-text-sub font-bold mt-1 uppercase tracking-wider">AI Tailored News Feed</p>
         </div>
         <button
           onClick={handleAnalyze}
           disabled={loading}
-          className="flex items-center gap-2 bg-primary hover:bg-blue-600 px-6 py-3 rounded-xl font-bold transition-all shadow-lg shadow-primary/20 disabled:opacity-50"
+          className="smart-btn-primary flex items-center gap-2 py-2.5 px-5"
         >
           <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-          {loading ? '분석 중...' : '새로고침'}
+          {loading ? 'AI 분석 중...' : '뉴스 업데이트'}
         </button>
       </div>
 
       {error && (
-        <div className="p-4 bg-danger/20 border border-danger/30 text-danger rounded-xl flex items-center gap-2">
-          <AlertCircle className="w-5 h-5 shrink-0" />
-          <span className="text-sm">{error}</span>
-          {error.includes('네트워크') && (
-            <button onClick={handleAnalyze} className="ml-auto underline font-bold">재시도</button>
-          )}
+        <div className="p-4 bg-rose-50 border border-rose-100 text-rose-600 rounded-2xl flex items-center gap-2 text-xs font-bold">
+          <AlertCircle className="w-4 h-4 shrink-0" />
+          {error}
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="space-y-4">
         {news.map((item) => (
-          <div key={item.id} className="glass p-6 rounded-2xl relative group overflow-hidden border border-black/5">
-            <div className={`absolute top-0 right-0 px-3 py-1 text-[10px] font-bold rounded-bl-xl ${
-              item.importance === '매우 중요' ? 'bg-danger text-white' : 
-              item.importance === '중요' ? 'bg-accent text-white' : 'bg-slate-200 text-slate-600'
-            }`}>
-              {item.importance}
-            </div>
-            
-            <div className="flex items-center gap-2 mb-3">
-              <span className="bg-primary/10 text-primary text-[10px] font-bold px-2 py-0.5 rounded uppercase">
+          <div key={item.id} className="smart-card p-6 group hover:border-primary/20">
+            <div className="flex items-center justify-between mb-3">
+              <span className="bg-primary/10 text-primary-dark text-[10px] font-black px-2.5 py-1 rounded-xl uppercase tracking-widest">
                 {item.asset_symbol}
               </span>
-              <span className="text-[10px] text-slate-400">{new Date(item.created_at).toLocaleDateString()}</span>
+              <div className={`px-2 py-0.5 rounded-lg text-[9px] font-black uppercase ${
+                item.importance === '매우 중요' ? 'bg-rose-500 text-white' : 
+                item.importance === '중요' ? 'bg-primary text-text-main' : 'bg-bg-point text-text-sub'
+              }`}>
+                {item.importance}
+              </div>
             </div>
             
-            <h3 className="font-bold text-lg mb-2 text-slate-900 group-hover:text-primary transition-colors">{item.title}</h3>
-            <p className="text-sm text-slate-600 line-clamp-2 mb-4">{item.summary}</p>
+            <h3 className="font-black text-lg mb-3 text-text-main leading-tight group-hover:text-primary-dark transition-colors">{item.title}</h3>
+            <div className="bg-bg-point p-4 rounded-2xl mb-4 border border-border-point">
+              <p className="text-sm text-slate-600 font-medium leading-relaxed">{item.summary}</p>
+            </div>
             
-            <div className="flex items-center justify-between mt-auto">
-              <div className="flex items-center gap-1">
-                <Flame className="w-4 h-4 text-orange-600" />
-                <span className="text-xs font-bold text-orange-600">연관도 {item.relevance_score}/10</span>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <Flame className="w-4 h-4 text-orange-500" />
+                <span className="text-[10px] font-black text-text-sub uppercase tracking-tighter">Relevance {item.relevance_score}/10</span>
               </div>
               <a
                 href={item.source_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-1 text-xs text-primary hover:underline font-bold"
+                className="flex items-center gap-1.5 text-xs text-primary-dark hover:underline font-black"
               >
-                원문보기 <ExternalLink className="w-3 h-3" />
+                원문 읽기 <ExternalLink className="w-3 h-3" />
               </a>
             </div>
           </div>
         ))}
+        
         {news.length === 0 && !loading && (
-          <div className="col-span-full py-20 text-center glass rounded-2xl border-2 border-dashed border-black/5">
-            <Newspaper className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-            <p className="text-slate-400 font-medium">새로고침 버튼을 눌러 맞춤 뉴스를 받아보세요.</p>
+          <div className="py-20 text-center smart-card bg-bg-point/50 border-dashed border-2 border-border-point">
+            <Newspaper className="w-12 h-12 text-border-point mx-auto mb-4" />
+            <p className="text-text-sub font-bold">보유 종목에 대한 분석 뉴스가 없습니다.<br/>업데이트 버튼을 눌러보세요!</p>
           </div>
         )}
       </div>

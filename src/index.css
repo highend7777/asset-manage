@@ -1,67 +1,73 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #FFBC00; /* KB Yellow */
-  --color-secondary: #4D4D4D; /* KB Brown */
-  --color-accent: #6E6E6E; /* Star Gray */
-  --color-danger: #ED1C24;
-  --color-success: #00A651;
+  --color-primary: #FFCC00; /* KB 메인 옐로우 */
+  --color-primary-dark: #E6B800;
+  --color-text-main: #2E2E2E; /* 기본 텍스트 */
+  --color-text-sub: #888888; /* 서브 텍스트 */
+  --color-bg-main: #F8F9FA; /* 배경 기본 */
+  --color-bg-point: #F2F2F2; /* UX 포인트 박스 배경 */
+  --color-border-point: #E0E0E0; /* UX 포인트 박스 테두리 */
 }
 
-:root {
-  --kb-yellow: #FFBC00;
-  --kb-brown: #4D4D4D;
-  --kb-gray: #6E6E6E;
-  --kb-light-gray: #F8F9FA;
+@layer base {
+  body {
+    @apply bg-bg-main text-text-main font-sans antialiased;
+  }
 }
 
-body {
-  margin: 0;
-  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  background-color: var(--kb-light-gray);
-  color: var(--kb-brown);
-  -webkit-font-smoothing: antialiased;
+@layer components {
+  /* KB 프리미엄 카드 디자인 */
+  .smart-card {
+    @apply bg-white rounded-2xl border border-border-point shadow-sm transition-all duration-300;
+  }
+  
+  .smart-card:hover {
+    @apply shadow-md border-primary/30;
+  }
+
+  /* 포인트 박스 */
+  .point-box {
+    @apply bg-bg-point border border-border-point rounded-2xl p-4;
+  }
+
+  /* 스마트 입력창 */
+  .smart-input {
+    @apply bg-white border border-border-point rounded-xl px-4 py-3 text-sm text-text-main focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all;
+  }
+
+  /* KB 스타일 버튼 */
+  .smart-btn-primary {
+    @apply bg-primary hover:bg-primary-dark text-text-main font-bold py-3 px-6 rounded-xl transition-all shadow-sm active:scale-95 disabled:opacity-50;
+  }
+
+  .smart-btn-secondary {
+    @apply bg-bg-point hover:bg-border-point text-text-main font-bold py-3 px-6 rounded-xl transition-all active:scale-95;
+  }
+
+  /* 텍스트 스타일 */
+  .text-sub {
+    @apply text-text-sub text-sm font-medium;
+  }
 }
 
-.upward-gradient {
-  background: linear-gradient(135deg, #F8F9FA 0%, #F1F3F5 100%);
-}
-
-.glass {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-}
-
-.kb-card {
-  background: white;
-  border-radius: 1.5rem;
-  border-bottom: 4px solid var(--kb-yellow);
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
-}
-
-/* Animations */
+/* 애니메이션 */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-.animate-in {
+.animate-kb-fade {
   animation: fadeIn 0.5s ease-out forwards;
 }
 
-/* Custom Scrollbar */
+/* 스크롤바 커스텀 */
 ::-webkit-scrollbar {
   width: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: transparent;
+  @apply bg-transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #DEE2E6;
-  border-radius: 10px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: var(--kb-yellow);
+  @apply bg-border-point rounded-full hover:bg-text-sub transition-all;
 }

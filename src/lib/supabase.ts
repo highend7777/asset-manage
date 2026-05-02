@@ -1,69 +1,73 @@
 import { createClient } from '@supabase/supabase-js'
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('Supabase URL or Publishable Key is missing in .env')
-}
+export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
-export const supabase = createClient(supabaseUrl || '', supabaseAnonKey || '')
+// --- Types ---
 
-// Database Types
-export interface FamilyMember {
-  id: string
-  name: string
-  relationship: string
-  created_at: string
-}
+export type AssetCategory = 'stock' | 'bond' | 'cash' | 'crypto' | 'etc'
 
 export interface Account {
   id: string
-  member_id: string
-  institution: string
+  user_id: string
   name: string
-  account_number?: string
+  institution: string
   created_at: string
 }
 
-export interface Asset {
+export interface Product {
   id: string
-  member_id: string
-  account_id: string | null
-  type: 'stock' | 'bond' | 'cash' | 'crypto'
+  user_id: string
+  symbol: string
   name: string
+  category: AssetCategory
+  created_at: string
+}
+
+export interface Transaction {
+  id: string
+  user_id: string
+  account_id: string
+  product_id: string
   amount: number
-  currency: string
-  symbol?: string
-  asset_date: string
-  current_value?: number
+  price: number
+  transaction_date: string
   created_at: string
 }
 
 export interface ProductPrice {
   id: string
-  symbol: string
+  product_id: string
   price: number
   price_date: string
   created_at: string
 }
 
-export type NewsItem = {
+export interface Dividend {
   id: string
+  product_id: string
+  amount_per_share: number
+  payment_date: string
+  created_at: string
+}
+
+export interface NewsItem {
+  id: string
+  user_id: string
   asset_symbol: string
   title: string
   summary: string
   relevance_score: number
-  importance: '매우 중요' | '중요' | '참고'
+  importance: string
   source_url: string
   created_at: string
 }
 
-export type WeeklyReport = {
+export interface Report {
   id: string
-  start_date: string
-  end_date: string
+  user_id: string
   content: string
-  ai_metadata: any
   created_at: string
 }

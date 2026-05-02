@@ -1,70 +1,70 @@
--- 우상향 마이 자산라이프: Supabase 초기 설정 스크립트 v4
--- 일자별 상품 가격 관리 및 히스토리 조회 시스템 도입
+-- 스마트 자산관리: Supabase 스키마 v3.1 (개인용 최적화)
 
--- 1. 기존 테이블 삭제 (초기화용)
-DROP TABLE IF EXISTS assets CASCADE;
-DROP TABLE IF EXISTS accounts CASCADE;
-DROP TABLE IF EXISTS family_members CASCADE;
-DROP TABLE IF EXISTS reports CASCADE;
-DROP TABLE IF EXISTS news_cache CASCADE;
-DROP TABLE IF EXISTS products CASCADE;
+-- 1. 기존 테이블 삭제 (초기화)
+DROP TABLE IF EXISTS transactions CASCADE;
 DROP TABLE IF EXISTS product_prices CASCADE;
+DROP TABLE IF EXISTS dividends CASCADE;
+DROP TABLE IF EXISTS products CASCADE;
+DROP TABLE IF EXISTS accounts CASCADE;
+DROP TABLE IF EXISTS assets CASCADE;
+DROP TABLE IF EXISTS news_cache CASCADE;
+DROP TABLE IF EXISTS reports CASCADE;
 
--- 2. 가족 구성원 테이블
-CREATE TABLE family_members (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    name TEXT NOT NULL,
-    relationship TEXT NOT NULL,
-    created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- 3. 계좌 테이블
+-- 2. 계좌 테이블
 CREATE TABLE accounts (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    member_id UUID REFERENCES family_members(id) ON DELETE CASCADE,
+    user_id UUID DEFAULT auth.uid(), -- NOT NULL 제거
+    name TEXT NOT NULL,
     institution TEXT NOT NULL,
-    name TEXT NOT NULL,
-    account_number TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 4. 자산 테이블
-CREATE TABLE assets (
+-- 3. 상품 테이블
+CREATE TABLE products (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    member_id UUID REFERENCES family_members(id) ON DELETE CASCADE,
-    account_id UUID REFERENCES accounts(id) ON DELETE SET NULL,
-    type TEXT NOT NULL,
+    user_id UUID DEFAULT auth.uid(), -- NOT NULL 제거
+    symbol TEXT NOT NULL,
     name TEXT NOT NULL,
+    category TEXT NOT NULL CHECK (category IN ('stock', 'bond', 'cash', 'crypto', 'etc')),
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE(symbol)
+);
+
+-- 4. 구매/매도 이력 테이블
+CREATE TABLE transactions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID DEFAULT auth.uid(), -- NOT NULL 제거
+    account_id UUID REFERENCES accounts(id) ON DELETE CASCADE,
+    product_id UUID REFERENCES products(id) ON DELETE CASCADE,
     amount DECIMAL NOT NULL,
-    currency TEXT DEFAULT 'KRW',
-    symbol TEXT,
-    asset_date DATE DEFAULT CURRENT_DATE, -- 자산 취득/등록일
+    price DECIMAL NOT NULL,
+    transaction_date DATE NOT NULL DEFAULT CURRENT_DATE,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 5. 상품별 일자별 가격 테이블 (NEW)
+-- 5. 상품별 일자별 가격 테이블
 CREATE TABLE product_prices (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    symbol TEXT NOT NULL, -- 종목코드/심볼
-    price DECIMAL NOT NULL, -- 해당 일자의 가격
-    price_date DATE NOT NULL, -- 가격 기준일
+    product_id UUID REFERENCES products(id) ON DELETE CASCADE,
+    price DECIMAL NOT NULL,
+    price_date DATE NOT NULL,
     created_at TIMESTAMPTZ DEFAULT NOW(),
-    UNIQUE(symbol, price_date) -- 같은 날짜의 중복 가격 방지
+    UNIQUE(product_id, price_date)
 );
 
--- 6. 주간 리포트 테이블
-CREATE TABLE reports (
+-- 6. 상품별 배당 이력 테이블
+CREATE TABLE dividends (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    start_date DATE NOT NULL,
-    end_date DATE NOT NULL,
-    content TEXT NOT NULL,
-    ai_metadata JSONB,
+    product_id UUID REFERENCES products(id) ON DELETE CASCADE,
+    amount_per_share DECIMAL NOT NULL,
+    payment_date DATE NOT NULL,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 7. 뉴스 캐시 테이블
+-- 7. 뉴스 캐시 및 리포트
 CREATE TABLE news_cache (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID DEFAULT auth.uid(), -- NOT NULL 제거
     asset_symbol TEXT NOT NULL,
     title TEXT NOT NULL,
     summary TEXT,
@@ -74,22 +74,18 @@ CREATE TABLE news_cache (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 8. 종목 정보 테이블
-CREATE TABLE products (
+CREATE TABLE reports (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    name TEXT NOT NULL,
-    symbol TEXT NOT NULL,
-    type TEXT NOT NULL,
-    market TEXT NOT NULL,
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    UNIQUE(symbol, market)
+    user_id UUID DEFAULT auth.uid(), -- NOT NULL 제거
+    content TEXT NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 9. 보안 설정 (실습용 RLS 비활성화)
-ALTER TABLE family_members DISABLE ROW LEVEL SECURITY;
+-- 8. 보안 설정 비활성화 (개인용)
 ALTER TABLE accounts DISABLE ROW LEVEL SECURITY;
-ALTER TABLE assets DISABLE ROW LEVEL SECURITY;
-ALTER TABLE reports DISABLE ROW LEVEL SECURITY;
-ALTER TABLE news_cache DISABLE ROW LEVEL SECURITY;
 ALTER TABLE products DISABLE ROW LEVEL SECURITY;
+ALTER TABLE transactions DISABLE ROW LEVEL SECURITY;
 ALTER TABLE product_prices DISABLE ROW LEVEL SECURITY;
+ALTER TABLE dividends DISABLE ROW LEVEL SECURITY;
+ALTER TABLE news_cache DISABLE ROW LEVEL SECURITY;
+ALTER TABLE reports DISABLE ROW LEVEL SECURITY;
