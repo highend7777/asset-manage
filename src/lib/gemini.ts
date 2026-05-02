@@ -83,6 +83,6 @@ export async function generateActionPlan(assetsSummary: string, newsSummary: str
     return response.text()
   } catch (error: any) {
     console.error('Gemini Report Error:', error)
-    return "리포트를 생성하는 중 오류가 발생했습니다."
+    throw error
   }
 }

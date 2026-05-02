@@ -10,8 +10,8 @@ interface LayoutProps {
 const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab }) => {
 
   const menuItems = [
-    { id: 'dashboard', label: '대시보드', icon: LayoutDashboard },
-    { id: 'analysis', label: 'AI 분석', icon: Newspaper },
+    { id: 'dashboard', label: '자산현황', icon: LayoutDashboard },
+    { id: 'analysis', label: 'AI 투자분석', icon: Newspaper },
     { id: 'assets', label: '자산정보등록', icon: Wallet },
   ]
 

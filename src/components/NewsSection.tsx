@@ -39,7 +39,7 @@ const NewsSection = () => {
 
       const heldSymbols = products
         .filter(p => (holdings[p.id] || 0) > 0)
-        .map(p => p.symbol)
+        .map(p => `${p.name}(${p.symbol})`)
 
       if (heldSymbols.length === 0) {
         setError('분석할 보유 종목이 없습니다. 구매 이력을 먼저 등록해주세요.')
