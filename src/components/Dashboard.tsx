@@ -193,10 +193,11 @@ const Dashboard = () => {
                   outerRadius={100} 
                   paddingAngle={5} 
                   dataKey="value"
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  label={({ name, percent }: any) => `${name} ${((percent || 0) * 100).toFixed(0)}%`}
                   labelLine={true}
-                  onClick={(data) => {
-                    setSelectedCategory(selectedCategory === data.key ? null : data.key)
+                  onClick={(data: any) => {
+                    const key = data?.key as string | null
+                    setSelectedCategory(selectedCategory === key ? null : key)
                   }}
                   cursor="pointer"
                 >
